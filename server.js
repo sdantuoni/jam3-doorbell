@@ -6,6 +6,7 @@ var express    = require('express');
 var bodyParser = require('body-parser');
 var app        = express();
 var morgan     = require('morgan');
+var dateTime = require('node-datetime');
 
 // configure app
 app.use(morgan('dev')); // log requests to the console
@@ -38,11 +39,35 @@ router.get('/', function(req, res) {
 // ----------------------------------------------------
 router.route('/doorbell')
 	.post(function(req, res) {
-			res.json('algo post');
+		var dt = dateTime.create();
+		var formatted = dt.format('Y-m-d H:M:S');
+		var fs = require('fs');
+		fs.writeFile("./log/"+formatted+".txt", "Hey there!", function(err) {
+	if(err) {
+			return console.log(err);
+			res.json(err)
+	}else{
+	res.json({succes: true})
+}
+});
 	})
 
 	.get(function(req, res) {
-		res.json('algo get');
+		var walkSync = function(dir, filelist) {
+  var fs = fs || require('fs'),
+      files = fs.readdirSync(dir);
+  filelist = filelist || [];
+  files.forEach(function(file) {
+    if (fs.statSync(dir + file).isDirectory()) {
+      filelist = walkSync(dir + file + '/', filelist);
+    }
+    else {
+      filelist.push(file);
+    }
+  });
+  return filelist;
+};
+res.json(walkSync('./log/'));
 	});
 
 // on routes that end in /bears/:bear_id
