@@ -7,6 +7,19 @@ var bodyParser = require('body-parser');
 var app        = express();
 var morgan     = require('morgan');
 var dateTime = require('node-datetime');
+var fs = require('fs');
+var multer  = require('multer')
+var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'images/')
+    },
+    filename: function (req, file, cb) {
+				var datetime = new Date().toISOString();
+        cb(null, file.fieldname + '-' + datetime +'.jpg')
+  }
+})
+
+var upload = multer({ storage: storage })
 
 // configure app
 app.use(morgan('dev')); // log requests to the console
@@ -30,6 +43,8 @@ router.use(function(req, res, next) {
 	next();
 });
 
+router.use('/images', express.static('images'))
+
 // test route to make sure everything is working (accessed at GET http://localhost:8080/api)
 router.get('/', function(req, res) {
 	res.json({ message: 'hooray! welcome to our api!' });
@@ -38,36 +53,10 @@ router.get('/', function(req, res) {
 // on routes that end in /bears
 // ----------------------------------------------------
 router.route('/doorbell')
-	.post(function(req, res) {
-		var dt = dateTime.create();
-		var formatted = dt.format('Y-m-d H:M:S');
-		var fs = require('fs');
-		fs.writeFile("./log/"+formatted+".txt", "Hey there!", function(err) {
-	if(err) {
-			return console.log(err);
-			res.json(err)
-	}else{
-	res.json({succes: true})
-}
-});
+	.post(upload.single('image'), function(req, res) {
+		res.json({'filename': req.file.filename});
 	})
-
 	.get(function(req, res) {
-		var walkSync = function(dir, filelist) {
-  var fs = fs || require('fs'),
-      files = fs.readdirSync(dir);
-  filelist = filelist || [];
-  files.forEach(function(file) {
-    if (fs.statSync(dir + file).isDirectory()) {
-      filelist = walkSync(dir + file + '/', filelist);
-    }
-    else {
-      filelist.push(file);
-    }
-  });
-  return filelist;
-};
-res.json(walkSync('./log/'));
 	});
 
 // on routes that end in /bears/:bear_id
