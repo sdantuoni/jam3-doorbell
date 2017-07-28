@@ -59,6 +59,14 @@ router.route('/doorbell')
 	.get(function(req, res) {
 	});
 
+  router.route('/dooropen')
+  	.post(function(req, res) {
+  		res.json({'population': 'todopiola'});
+      console.log('Hey alexa is called me');
+  	})
+  	.get(function(req, res) {
+  	});
+
 // on routes that end in /bears/:bear_id
 // ----------------------------------------------------
 router.route('/bears/:bear_id')
